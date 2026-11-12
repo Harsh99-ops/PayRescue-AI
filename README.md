@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/payrescue-banner.png" alt="PayRescue AI" width="100%" />
+  <img src="assets/PayRescue-Banner.png" alt="PayRescue AI" width="100%" />
 </p>
 
 # PayRescue AI
