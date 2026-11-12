@@ -1,4 +1,8 @@
-# PayRescue AI 
+<p align="center">
+  <img src="assets/payrescue-banner.png" alt="PayRescue AI" width="100%" />
+</p>
+
+# PayRescue AI
 
 Click to see the live demo:= 
 
