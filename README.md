@@ -1,4 +1,4 @@
-# PayRescue AI — Local-first Hackathon Edition
+# PayRescue AI 
 
 A runnable React + Vite + Express + SQLite seller receivables recovery platform. **V2 adds Gmail SMTP, manual sending of generated drafts, buyer-approved automatic overdue emails, BCC archive copies and persistent email history.** Features include a buyer directory, invoice ledger, installments, late-payment dashboard, payment reconciliation, SHA-256 evidence vault, reminder drafts, disputes/legal review workspace, PDF summaries, PayPal Sandbox Orders/Capture/Refund API support, and a built-in demonstration mode.
 
