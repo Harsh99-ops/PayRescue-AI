@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {minor,major,statusFor,nextStep,safeStr,isoToday} from '../server/core.js';
+for(const [amount,cents] of [[0.01,1],[1,100],[1.23,123],[10,1000],[2000.50,200050],[99999.99,9999999],[0.1,10],[0.3,30]])test('money conversion '+amount,()=>assert.equal(minor(amount),cents));
+for(const invalid of [0,-1,NaN,Infinity,'abc',0.001,1.999,undefined])test('reject bad amount '+String(invalid),()=>assert.throws(()=>minor(invalid)));
+for(const [cents,expected] of [[1,'0.01'],[100,'1.00'],[123,'1.23'],[999,'9.99'],[100000,'1000.00']])test('money display '+cents,()=>assert.equal(major(cents),expected));
+for(const [total,paid,due,want] of [[100,100,'2020-01-01','paid'],[100,1,'2020-01-01','partial'],[100,0,'2020-01-01','overdue'],[100,0,'2999-01-01','open']])test('status '+want,()=>assert.equal(statusFor(total,paid,due),want));
+test('recommendation paid',()=>assert.match(nextStep({amount_cents:100,paid_cents:100,due_date:'2020-01-01'}).recommendation,/Paid in full/));
+test('recommendation escalate',()=>assert.match(nextStep({amount_cents:100,paid_cents:0,due_date:'2020-01-01'}).recommendation,/Escalate/));
+test('recommendation upcoming',()=>assert.match(nextStep({amount_cents:100,paid_cents:0,due_date:'2999-01-01'}).recommendation,/pre-due/));
+test('safe text caps',()=>assert.equal(safeStr('abcdefgh',3),'abc'));
+test('today ISO date',()=>assert.match(isoToday(),/^\d{4}-\d\d-\d\d$/));

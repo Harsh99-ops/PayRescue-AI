@@ -1,0 +1,23 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {validRealEmail,localClock,shouldAutoSend,overdueDueDate} from '../server/emailRules.js';
+const today='2026-11-12';
+test('valid Gmail or business inbox',()=>assert.equal(validRealEmail('buyer@gmail.com'),true));
+test('invalid bare email',()=>assert.equal(validRealEmail('wrong-at-gmail'),false));
+test('reject seeded example.com buyer',()=>assert.equal(validRealEmail('accounts@northstar.example'),false));
+test('reject reserved example.com',()=>assert.equal(validRealEmail('some@example.com'),false));
+test('reject localhost',()=>assert.equal(validRealEmail('a@b.localhost'),false));
+test('local scheduler clock in Asia/Kolkata',()=>assert.deepEqual(localClock(new Date('2026-11-11T18:30:00.000Z'),'Asia/Kolkata'),{date:today,hour:0}));
+test('local clock supports United States timezones',()=>assert.deepEqual(localClock(new Date('2026-11-12T15:30:00Z'),'America/New_York'),{date:today,hour:10}));
+test('eligible overdue buyer',()=>assert.equal(shouldAutoSend({today,dueDate:'2026-11-09',outstanding:5500,optIn:true}),true));
+test('no consent means no email',()=>assert.equal(shouldAutoSend({today,dueDate:'2026-11-09',outstanding:5500,optIn:false}),false));
+test('fully paid invoice no email',()=>assert.equal(shouldAutoSend({today,dueDate:'2026-11-09',outstanding:0,optIn:true}),false));
+test('upcoming invoice no email',()=>assert.equal(shouldAutoSend({today,dueDate:'2026-11-14',outstanding:5500,optIn:true}),false));
+test('due today not overdue',()=>assert.equal(shouldAutoSend({today,dueDate:today,outstanding:5500,optIn:true}),false));
+test('short interval skips repeat',()=>assert.equal(shouldAutoSend({today,dueDate:'2026-11-01',outstanding:5500,optIn:true,priorSentAt:'2026-11-11',intervalDays:3}),false));
+test('interval reached permits repeat',()=>assert.equal(shouldAutoSend({today,dueDate:'2026-11-01',outstanding:5500,optIn:true,priorSentAt:'2026-11-09',intervalDays:3}),true));
+test('maximum reached stops automation',()=>assert.equal(shouldAutoSend({today,dueDate:'2026-11-01',outstanding:5500,optIn:true,automatedCount:4,maxPerInvoice:4}),false));
+
+test('unpaid installment triggers reminder before final invoice due',()=>assert.equal(overdueDueDate({today,invoiceDueDate:'2026-11-30',invoiceAmount:20000,paid:2000,installments:[{due_date:'2026-11-10',amount_cents:5000}]}),'2026-11-10'));
+test('paid early installment does not trigger reminder',()=>assert.equal(overdueDueDate({today,invoiceDueDate:'2026-11-30',invoiceAmount:20000,paid:6000,installments:[{due_date:'2026-11-10',amount_cents:5000}]}),null));
+test('fully paid invoice no installment email',()=>assert.equal(overdueDueDate({today,invoiceDueDate:'2026-11-02',invoiceAmount:20000,paid:20000,installments:[]}),null));

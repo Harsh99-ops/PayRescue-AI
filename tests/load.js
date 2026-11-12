@@ -1,0 +1,5 @@
+// External load smoke-test; intended for localhost only. Usage: node tests/load.js
+const url=process.env.LOAD_URL||'http://127.0.0.1:8787/api/health';if(!/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?\//.test(url))throw Error('Local-only load test');
+const total=1000,concurrency=100,latencies=[],start=performance.now();let next=0,failures=0;
+async function worker(){while(next<total){next++;const t=performance.now();try{const r=await fetch(url);if(!r.ok)failures++;}catch{failures++;}latencies.push(performance.now()-t);}}
+await Promise.all(Array.from({length:concurrency},worker));const duration=(performance.now()-start)/1000;latencies.sort((a,b)=>a-b);const p95=latencies[Math.ceil(latencies.length*.95)-1];console.log(JSON.stringify({requests:total,concurrency,failures,elapsedSeconds:Number(duration.toFixed(2)),requestsPerSecond:Number((total/duration).toFixed(2)),p95Milliseconds:Number(p95.toFixed(2)),target:{requestsPerSecond:100,p95Milliseconds:150}},null,2));if(failures)process.exitCode=1;
